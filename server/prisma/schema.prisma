@@ -9,11 +9,57 @@ datasource db {
 }
 
 model Users {
-  id         Int      @id @unique @default(autoincrement())
-  email      String?  @db.VarChar
-  googleId   String?  @unique @db.VarChar
-  username   String?  @unique @db.VarChar
-  hash       String?  @db.VarChar
-  salt       String?  @db.VarChar
+  id                                  Int               @id @unique @default(autoincrement())
+  email                               String?           @db.VarChar
+  googleId                            String?           @unique @db.VarChar
+  username                            String?           @unique @db.VarChar
+  hash                                String?           @db.VarChar
+  salt                                String?           @db.VarChar
+  created_at                          DateTime          @default(now()) @db.Timestamptz(6)
+  Contacts_Contacts_contact_idToUsers Contacts[]        @relation("Contacts_contact_idToUsers")
+  Contacts_Contacts_user_idToUsers    Contacts[]        @relation("Contacts_user_idToUsers")
+  Messages                            Messages[]
+  Room_Membership                     Room_Membership[]
+  Rooms                               Rooms[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Contacts {
+  id                               BigInt @id @default(autoincrement())
+  user_id                          Int?
+  contact_id                       Int?
+  Users_Contacts_contact_idToUsers Users? @relation("Contacts_contact_idToUsers", fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Users_Contacts_user_idToUsers    Users? @relation("Contacts_user_idToUsers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Messages {
+  id         BigInt   @id @default(autoincrement())
+  room_id    Int?
+  sender_id  Int?
+  text       String?
   created_at DateTime @default(now()) @db.Timestamptz(6)
+  Rooms      Rooms?   @relation(fields: [room_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Users      Users?   @relation(fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Room_Membership {
+  id      Int    @id @unique @default(autoincrement())
+  user_id Int?
+  room_id Int?
+  Rooms   Rooms? @relation(fields: [room_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Users   Users? @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("Room Membership")
+}
+
+model Rooms {
+  id              Int               @id @unique @default(autoincrement())
+  name            String?           @db.VarChar
+  type            String?           @unique @db.VarChar
+  code            String?           @unique @db.VarChar
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  created_by      Int?
+  Messages        Messages[]
+  Room_Membership Room_Membership[]
+  Users           Users?            @relation(fields: [created_by], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }

@@ -22,7 +22,7 @@ module.exports = new GoogleStrategy(
       } else {
         user = await prisma.Users.upsert({
           where: {
-            username: username,
+            username: profile.displayName,
           },
           update: {
             googleId: profile.id,
@@ -34,6 +34,7 @@ module.exports = new GoogleStrategy(
             username: profile.displayName,
           },
         });
+        return done(null, user);
       }
     } catch (err) {
       return done(err, false);

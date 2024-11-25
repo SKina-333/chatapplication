@@ -2,12 +2,15 @@ require("dotenv").config();
 const crypto = require("crypto");
 const jsonwebtoken = require("jsonwebtoken");
 
+
 const fs = require("fs");
 const path = require("path");
 let PRIV_KEY =''
+const pathToPubKey = path.join(__dirname, "../etc/secrets/", "id_rsa_pub.pem");
+const PUB_KEY = fs.readFileSync(pathToPubKey,"utf8")
 
 if (process.env.NODE_ENV === "developement") {
-  const pathToKey = path.join(__dirname, "../etc/secrets", "id_rsa_priv.pem");
+  const pathToKey = path.join(__dirname, "../etc/secrets/", "id_rsa_priv.pem");
   PRIV_KEY = fs.readFileSync(pathToKey, "utf8");
 } else {
   PRIV_KEY = process.env.PRIV_KEY;
@@ -30,6 +33,12 @@ function genPassword(password) {
     salt: salt,
     hash: genHash,
   };
+}
+
+function verifyJwt(token) {
+  const decoded = jsonwebtoken.verify(token, PUB_KEY);
+  return decoded;
+  
 }
 
 function issueJWT(user) {
@@ -56,3 +65,4 @@ function issueJWT(user) {
 module.exports.validPassword = validPassword;
 module.exports.genPassword = genPassword;
 module.exports.issueJWT = issueJWT;
+module.exports.verifyJwt = verifyJwt;

@@ -1,7 +1,7 @@
 import React from 'react'
 
-export default function UserContactComponent() {
+export default function UserContactComponent({name,Key}) {
   return (
-    <div className="shadow-md p-5 rounded-xl bg-slate-100">userprofile</div>
+    <div key={Key} className="shadow-md p-5 rounded-xl bg-slate-100">{name}</div>
   )
 }
