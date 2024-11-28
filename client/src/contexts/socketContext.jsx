@@ -34,7 +34,7 @@ export const SocketProvider = ({ children }) => {
         socketRef.current = null;
       }
     };
-  }, []);
+  }, [token]);
 
   const connectSocket = (token) => {
     if (socketRef.current) return;
