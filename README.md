@@ -1,4 +1,4 @@
-# chatapplication
+# Chat Application
 
 Live Website: https://chat-application-client-w7e2.onrender.com
 
