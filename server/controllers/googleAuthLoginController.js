@@ -8,7 +8,7 @@ const googleLoginCallback = async (req, res) => {
     if (!user) {
       if (!user) {
         return res.redirect(
-          `http://localhost:5173/login?error=${encodeURIComponent(
+          `https://chat-application-client-w7e2.onrender.com/login?error=${encodeURIComponent(
             "User authentication failed"
           )}`
         );
@@ -18,7 +18,7 @@ const googleLoginCallback = async (req, res) => {
     const { token, expires } = utils.issueJWT(user);
 
     res.redirect(
-      `http://localhost:5173/login?token=${encodeURIComponent(
+      `https://chat-application-client-w7e2.onrender.com/login?token=${encodeURIComponent(
         token
       )}&expires=${encodeURIComponent(expires)}`
     );
@@ -27,7 +27,7 @@ const googleLoginCallback = async (req, res) => {
 
     // Redirect to frontend with a generic error message
     return res.redirect(
-      `http://localhost:5173/login?error=${encodeURIComponent(
+      `https://chat-application-client-w7e2.onrender.com/login?error=${encodeURIComponent(
         "An unexpected error occurred"
       )}`
     );
