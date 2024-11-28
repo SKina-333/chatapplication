@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const setupSocket = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: ["http://localhost:5173","https://chat-application-client-w7e2.onrender.com"],
     },
   });
 
