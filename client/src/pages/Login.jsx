@@ -89,7 +89,7 @@ export default function Login() {
     const existingToken = localStorage.getItem("id_token");
     if (!existingToken) {
       handleOAuthResponse();
-      console.log("huhhhhh exist")
+      
     }
   }, [location.search]);
 

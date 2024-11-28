@@ -13,20 +13,18 @@ export const SocketProvider = ({ children }) => {
   const [currentRoom, setCurrentRoom] = useState("");
   const [messagesByRoom, setMessagesByRoom] = useState({});
   const [userName, setUserName] = useState(null);
-  const [contacts, setContacts] = useState([])
-
+  const [contacts, setContacts] = useState([]);
 
   const [allRoom, setAllRoom] = useState([]);
 
   const token = localStorage.getItem("id_token");
-  
 
   const socketRef = useRef(null);
 
   useEffect(() => {
     if (token && !socketRef.current) {
       connectSocket(token);
-    }else{
+    } else {
       disconnectSocket();
     }
 
@@ -36,9 +34,11 @@ export const SocketProvider = ({ children }) => {
         socketRef.current = null;
       }
     };
-  }, [token]);
+  }, []);
 
   const connectSocket = (token) => {
+    if (socketRef.current) return;
+
     const socketIo = io("https://chat-application-server-nrwd.onrender.com", {
       extraHeaders: { Authorization: token },
       autoConnect: false,
@@ -51,10 +51,8 @@ export const SocketProvider = ({ children }) => {
       console.log("Socket connected");
 
       if (!userName) {
-        
         socketIo.on("user-info", (userInfo) => {
           setUserName(userInfo);
-          
         });
       }
       socketIo.emit("get-contacts");
@@ -63,7 +61,6 @@ export const SocketProvider = ({ children }) => {
     socketIo.on("disconnect", () => {
       console.log("Socket disconnected.");
     });
-    
 
     //LOAD ROOMS OPERATION (PUBLIC and PRIVATE)
     socketIo.emit("get-rooms");
@@ -80,15 +77,14 @@ export const SocketProvider = ({ children }) => {
     });
     //
 
-    socketIo.on("testing",(message)=>{
-      console.log(message)
-    })
+    socketIo.on("testing", (message) => {
+      console.log(message);
+    });
 
     //LOAD CONTACTS
-    socketIo.on("get-contacts",(Contacts)=>{
+    socketIo.on("get-contacts", (Contacts) => {
       setContacts(Contacts);
-      
-    })
+    });
 
     socketIo.on("connect_error", (err) => {
       console.error("Socket connection error:", err);
@@ -104,6 +100,11 @@ export const SocketProvider = ({ children }) => {
       console.log("Disconnecting socket");
       socketRef.current.disconnect();
       socketRef.current = null;
+      setUserName(null);
+      setContacts([]);
+      setMessagesByRoom({});
+      setAllRoom([]);
+      setCurrentRoom("");
     }
   };
 
@@ -123,22 +124,17 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
-  const addContact = (username) =>{
-    if (socketRef.current){
-      socketRef.current.emit("add-contact",
-        username
-      )
+  const addContact = (username) => {
+    if (socketRef.current) {
+      socketRef.current.emit("add-contact", username);
     }
   };
 
   const addPrivRoom = (groupName, contactIds) => {
-    if (socketRef.current){
-      socketRef.current.emit("add-private-room",
-        {groupName, contactIds}
-      )
+    if (socketRef.current) {
+      socketRef.current.emit("add-private-room", { groupName, contactIds });
     }
-  }
-
+  };
 
   return (
     <SocketContext.Provider
@@ -154,7 +150,7 @@ export const SocketProvider = ({ children }) => {
         allRoom,
         addContact,
         contacts,
-        addPrivRoom
+        addPrivRoom,
       }}
     >
       {children}
