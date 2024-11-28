@@ -16,7 +16,7 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-      window.location.href = "http://localhost:5000/auth/google";
+      window.location.href = "https://chat-application-server-nrwd.onrender.com/auth/google";
     } catch (error) {
       console.error("Error starting Google login:", error);
     }
@@ -53,7 +53,7 @@ export default function Login() {
     try {
       await axios
         .post(
-          "http://localhost:5000/auth/jwt/login",
+          "https://chat-application-server-nrwd.onrender.com/auth/jwt/login",
           { username, password },
           { withCredentials: true }
         )

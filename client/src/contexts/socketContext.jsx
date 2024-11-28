@@ -39,7 +39,7 @@ export const SocketProvider = ({ children }) => {
   }, [token]);
 
   const connectSocket = (token) => {
-    const socketIo = io("http://localhost:5000", {
+    const socketIo = io("https://chat-application-server-nrwd.onrender.com", {
       extraHeaders: { Authorization: token },
       autoConnect: false,
     });
