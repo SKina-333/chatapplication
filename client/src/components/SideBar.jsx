@@ -5,10 +5,13 @@ import ConversationContainer from "./ConversationContainer";
 import AddContactContainer from "./AddContactContainer";
 
 import ConversationFormComponent from "./ConversationFormComponent";
+import { useSocketContext } from "../contexts/socketContext";
+
 
 export default function SideBar() {
   const [currentActive, setCurrentActive] = useState("Conversations");
   const [open, setOpen] = useState(false);
+  const {userName} = useSocketContext();
 
   return (
     <>
@@ -45,7 +48,7 @@ export default function SideBar() {
           )}
 
           <div className="p-2 self-end font-bold">
-            user id: <span className="text-red-900">12345</span>
+            username: <span className="text-red-900">{userName && (userName.sender)}</span>
           </div>
         </div>
       </div>

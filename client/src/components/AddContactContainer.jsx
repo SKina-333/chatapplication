@@ -3,10 +3,9 @@ import InputGroupComponent from "./InputGroupComponent";
 import ExistingContactContainer from "./ExistingContactContainer";
 import { useSocketContext } from "../contexts/socketContext";
 
-
 export default function AddContactContainer() {
   const [searchValue, setSearchValue] = useState("");
-  const {addContact} = useSocketContext();
+  const { addContact } = useSocketContext();
 
   return (
     <>
@@ -17,9 +16,17 @@ export default function AddContactContainer() {
           type="text"
           value={searchValue}
           placeholder="Enter a username or ID to add"
-          onChange={(e)=>{setSearchValue(e.target.value)}}
+          onChange={(e) => {
+            setSearchValue(e.target.value);
+          }}
         />
-        <button onClick={()=>{addContact(searchValue)}} className="w-full p-2 bg-blue-600 text-white rounded-lg text-sm">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            addContact(searchValue);
+          }}
+          className="w-full p-2 bg-blue-600 text-white rounded-lg text-sm"
+        >
           Add Contact
         </button>
       </form>
@@ -28,10 +35,8 @@ export default function AddContactContainer() {
         <p className="absolute text-center mx-auto w-max px-4 bg-white font-bold text-gray-700">
           Existing Contacts
         </p>
-        
       </div>
       <div className="flex flex-col">
-        
         <ExistingContactContainer />
       </div>
     </>

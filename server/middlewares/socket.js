@@ -34,15 +34,16 @@ const setupSocket = (httpServer) => {
       `New client connected: ${socket.id}, User: ${socket.user.username} (${socket.user.id})`
     );
 
+    socket.join(socket.user.id);
     socket.emit("user-info", {
       senderID: socket.user.id,
       sender: socket.user.username,
     });
 
-    socket.on("get-public-rooms", async () => {
+    socket.on("get-rooms", async () => {
       try {
         // Example: Fetching rooms from Prisma database
-        const rooms = await prisma.Rooms.findMany({
+        const pubRooms = await prisma.Rooms.findMany({
           where: {
             type: "public",
           },
@@ -51,12 +52,87 @@ const setupSocket = (httpServer) => {
             name: true,
           },
         });
+        const privRooms = await prisma.Rooms.findMany({
+          where: {
+            type: "private",
+            Room_Membership: {
+              some: {
+                user_id: socket.user.id,
+              },
+            },
+          },
+          select: {
+            type: true,
+            name: true,
+          },
+        });
+
+        const allRooms = [...pubRooms, ...privRooms];
 
         // Send the list of rooms back to the client
-        socket.emit("public-rooms-list", rooms);
+        socket.emit("rooms-list", allRooms);
       } catch (err) {
         console.error("Error fetching rooms:", err);
       }
+    });
+
+    socket.on("add-private-room", async ({ groupName, contactIds }) => {
+      try {
+        const newRoom = await prisma.Rooms.create({
+          data: {
+            name: groupName,
+            type: "private",
+            created_by: socket.user.id,
+          },
+        });
+
+        const membersToAdd = contactIds.map((contactId) => ({
+          user_id: parseInt(contactId),
+          room_id: newRoom.id,
+        }));
+        membersToAdd.push({ user_id: socket.user.id, room_id: newRoom.id });
+
+        const addMembersToRoom = await prisma.Room_Membership.createMany({
+          data: membersToAdd,
+        });
+        if (!addMembersToRoom) {
+          throw new Error("Unable to link members and room");
+        }
+        const pubRooms = await prisma.Rooms.findMany({
+          where: {
+            type: "public",
+          },
+          select: {
+            type: true,
+            name: true,
+          },
+        });
+        const updatedPrivateRooms = await prisma.Rooms.findMany({
+          where: {
+            type: "private",
+            Room_Membership: {
+              some: {
+                user_id: socket.user.id,
+              },
+            },
+          },
+          select: {
+            type: true,
+            name: true,
+          },
+        });
+
+        const allRooms = [...pubRooms, ...updatedPrivateRooms];
+        socket.emit("rooms-list", allRooms);
+        
+
+        contactIds.map((contactId) => {
+          console.log(typeof(contactId));
+          
+          io.to(parseInt(contactId)).emit("rooms-list", allRooms);
+        });
+        //make user who created the room and the user who was invited get dynamically updated with new rooms
+      } catch (error) {}
     });
 
     socket.on("send-message", async ({ roomName, message }) => {
@@ -100,6 +176,7 @@ const setupSocket = (httpServer) => {
           // Access the room ID and its messages
           if (roomMessages) {
             io.to(roomName).emit("room-message", roomMessages.Messages);
+            
           }
         }
       } catch (error) {
@@ -121,7 +198,6 @@ const setupSocket = (httpServer) => {
         console.log("user joined room: ", roomID);
 
         if (roomID) {
-          socket.leaveAll();
           socket.join(roomName);
 
           const roomMessages = await prisma.Messages.findMany({
@@ -162,8 +238,17 @@ const setupSocket = (httpServer) => {
             where: { username },
           });
 
+          const existingContact = await prisma.contacts.findFirst({
+            where: {
+              user_id: userId,
+              contact_id: searchContact.id,
+            },
+          });
+
           if (!searchContact) {
             throw new Error("User not found");
+          } else if (searchContact.id === userId || existingContact) {
+            throw new Error("User cant be u or existing contact");
           }
 
           // Step 2: Add the contact
@@ -214,8 +299,8 @@ const setupSocket = (httpServer) => {
             },
           },
         });
-        console.log(getContact)
-        socket.emit("get-contacts",getContact)
+
+        socket.emit("get-contacts", getContact);
       } catch (error) {
         console.log(error);
       }

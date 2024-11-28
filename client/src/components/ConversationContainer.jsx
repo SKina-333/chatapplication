@@ -4,19 +4,12 @@ import ProfileComponent from "./ProfileComponent";
 import { useSocketContext } from "../contexts/socketContext";
 
 export default function ConversationContainer() {
-  const { joinRoom, publicRooms,setCurrentRoom } = useSocketContext();
+  const { allRoom } = useSocketContext();
 
   return (
     <>
-      {publicRooms.map((room) => (
-        <ProfileComponent
-          key={room}
-          onClick={() => {
-            joinRoom(room);
-            setCurrentRoom(room);
-          }}
-          name={room}
-        />
+      {allRoom.map((room) => (
+        <ProfileComponent key={room} name={room} />
       ))}
     </>
   );

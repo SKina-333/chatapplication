@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
   const [contacts, setContacts] = useState([])
 
 
-  const [publicRooms, setPublicRooms] = useState([]);
+  const [allRoom, setAllRoom] = useState([]);
 
   const token = localStorage.getItem("id_token");
   
@@ -51,8 +51,10 @@ export const SocketProvider = ({ children }) => {
       console.log("Socket connected");
 
       if (!userName) {
+        
         socketIo.on("user-info", (userInfo) => {
           setUserName(userInfo);
+          
         });
       }
       socketIo.emit("get-contacts");
@@ -61,13 +63,14 @@ export const SocketProvider = ({ children }) => {
     socketIo.on("disconnect", () => {
       console.log("Socket disconnected.");
     });
+    
 
     //LOAD ROOMS OPERATION (PUBLIC and PRIVATE)
-    socketIo.emit("get-public-rooms");
-    socketIo.on("public-rooms-list", (rooms) => {
+    socketIo.emit("get-rooms");
+    socketIo.on("rooms-list", (rooms) => {
       console.log("Available rooms:", rooms);
       const roomNames = rooms.map((room) => room.name);
-      setPublicRooms(roomNames);
+      setAllRoom(roomNames);
     });
     //
 
@@ -76,6 +79,10 @@ export const SocketProvider = ({ children }) => {
       setMessagesByRoom(roomMessages);
     });
     //
+
+    socketIo.on("testing",(message)=>{
+      console.log(message)
+    })
 
     //LOAD CONTACTS
     socketIo.on("get-contacts",(Contacts)=>{
@@ -124,6 +131,14 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  const addPrivRoom = (groupName, contactIds) => {
+    if (socketRef.current){
+      socketRef.current.emit("add-private-room",
+        {groupName, contactIds}
+      )
+    }
+  }
+
 
   return (
     <SocketContext.Provider
@@ -136,9 +151,10 @@ export const SocketProvider = ({ children }) => {
         userName,
         connectSocket,
         disconnectSocket,
-        publicRooms,
+        allRoom,
         addContact,
-        contacts
+        contacts,
+        addPrivRoom
       }}
     >
       {children}

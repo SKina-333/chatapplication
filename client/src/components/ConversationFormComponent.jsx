@@ -5,15 +5,33 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import InputGroupComponent from "./InputGroupComponent";
-
+import { useSocketContext } from "../contexts/socketContext";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 export default function ConversationFormComponent({ open, setOpen }) {
-  const people = [
-    { id: 1, name: "Annette Black" },
-    { id: 2, name: "Cody Fisher" },
-    { id: 3, name: "Courtney Henry" },
-    { id: 4, name: "Kathryn Murphy" },
-    { id: 5, name: "Theresa Webb" },
-  ];
+  const { contacts, addPrivRoom } = useSocketContext();
+  const [groupName, setGroupName] = useState("");
+  const [selectedContacts, setSelectedContacts] = useState({});
+  const navigate = useNavigate();
+  const handleCheckboxChange = (contactId) => {
+    setSelectedContacts((prev) => ({
+      ...prev,
+      [contactId]: !prev[contactId],
+    }));
+  };
+  const handleSubmit = () => {
+    
+    const selectedContactIds = Object.entries(selectedContacts)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([contactId]) => contactId);
+
+    console.log("Group Chat Name:", groupName);
+    console.log("Selected Contacts:", selectedContactIds);
+
+    addPrivRoom(groupName,selectedContactIds)
+    navigate("/");
+    setOpen(false);
+  };
   return (
     <Dialog open={open} onClose={setOpen} className="relative z-10">
       <DialogBackdrop
@@ -41,38 +59,51 @@ export default function ConversationFormComponent({ open, setOpen }) {
                       Members
                     </legend>
                     <div className="mt-4 divide-y divide-gray-200 border-b border-t border-gray-200">
-                      {people.map((person, personIdx) => (
-                        <div
-                          key={personIdx}
-                          className="relative flex items-start py-4"
-                        >
-                          <div className="min-w-0 flex-1 text-sm/6">
-                            <label
-                              htmlFor={`person-${person.id}`}
-                              className="select-none font-medium text-gray-900"
-                            >
-                              {person.name}
-                            </label>
+                      {contacts.length > 0 &&
+                        contacts.map((contact) => (
+                          <div
+                            key={contact.id}
+                            className="relative flex items-start py-4"
+                          >
+                            <div className="min-w-0 flex-1 text-sm/6">
+                              <label
+                                htmlFor={`person-${contact.id}`}
+                                className="select-none font-medium text-gray-900"
+                              >
+                                {
+                                  contact.Users_Contacts_contact_idToUsers
+                                    .username
+                                }
+                              </label>
+                            </div>
+                            <div className="ml-3 flex h-6 items-center">
+                              <input
+                                id={contact.id}
+                                name={contact.id}
+                                value={
+                                  contact.Users_Contacts_contact_idToUsers.id
+                                }
+                                type="checkbox"
+                                checked={!!selectedContacts[contact.Users_Contacts_contact_idToUsers.id]}
+                                onChange={() =>
+                                {handleCheckboxChange(contact.Users_Contacts_contact_idToUsers.id)}
+                                }
+                                className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                              />
+                            </div>
                           </div>
-                          <div className="ml-3 flex h-6 items-center">
-                            <input
-                              id={`person-${person.id}`}
-                              name={`person-${person.id}`}
-                              type="checkbox"
-                              className="size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </fieldset>
                   <InputGroupComponent
                     inputName="groupName"
                     type="text"
                     placeholder="Type group name"
-                    value=""
+                    value={groupName}
                     labelName="Group Chat Name"
-                    onChange={() => {}}
+                    onChange={(e) => {
+                      setGroupName(e.target.value);
+                    }}
                   />
                 </div>
               </div>
@@ -80,7 +111,10 @@ export default function ConversationFormComponent({ open, setOpen }) {
             <div className="mt-5 sm:mt-6">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  handleSubmit();
+                  setOpen(false);
+                }}
                 className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               >
                 Submit
